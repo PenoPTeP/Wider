@@ -1,0 +1,10 @@
+podman run -d \
+  --name udev \
+  --rootfs /modules/system/udev \
+  --privileged \
+  --pid=host \
+  --network=host \
+  --volume /run:/run:rw \
+  --volume /sys:/sys:rw \
+  --volume /dev:/dev:rw \
+  ./run

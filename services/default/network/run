@@ -1,0 +1,12 @@
+podman run -d \
+  --name network \
+  --rootfs /modules/system/NetworkManager \
+  --network=host \
+  --cap-add=NET_ADMIN \
+  --cap-add=NET_RAW \
+  --volume /run:/run:rw \
+  --volume /sys:/sys:ro \
+  --volume /dev:/dev:rw \
+  --volume /etc/machine-id:/etc/machine-id:ro \
+  --volume /var/lib/mydistro/state/NetworkManager:/var/lib/NetworkManager:rw \
+  ./run

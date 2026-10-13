@@ -1,0 +1,6 @@
+podman run -d \
+  --name dbus \
+  --rootfs /modules/system/dbus \
+  --network=host \
+  --volume /run:/run:rw \
+  ./run

@@ -1,0 +1,12 @@
+podman run -d \
+  --name login1 \
+  --rootfs /modules/system/elogind \
+  --privileged \
+  --pid=host \
+  --network=host \
+  --volume /run:/run:rw \
+  --volume /sys:/sys:ro \
+  --volume /dev:/dev:rw \
+  --volume /etc/passwd:/etc/passwd:ro \
+  --volume /etc/group:/etc/group:ro \
+  ./run
