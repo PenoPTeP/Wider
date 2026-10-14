@@ -1,0 +1,32 @@
+
+#!/bin/sh
+exec 2>&1
+
+mkdir -p /wdm/modules/elogind/upper /wdm/modules/elogind/work /modules/system/elogind
+
+mountpoint -q /modules/system/elogind || \
+    mount -t overlay wideros-elogind \
+    -o lowerdir=/wdm/modules/elogind/lower,upperdir=/wdm/modules/elogind/upper,workdir=/wdm/modules/elogind/work \
+    /modules/system/elogind || exit 1
+
+i=0
+while [ ! -S /run/dbus/system_bus_socket ]; do
+    i=$((i + 1))
+    [ "$i" -lt 60 ] || exit 1
+    sleep 1
+done
+
+exec podman run --rm \
+    --name wideros-elogind \
+    --rootfs /modules/system/elogind \
+    --privileged \
+    --pid=host \
+    --network=host \
+    --volume /run:/run:rw \
+    --volume /sys:/sys:ro \
+    --volume /sys/fs/cgroup:/sys/fs/cgroup:rw \
+    --volume /dev:/dev:rw \
+    --volume /etc/machine-id:/etc/machine-id:ro \
+    --volume /etc/passwd:/etc/passwd:ro \
+    --volume /etc/group:/etc/group:ro \
+    /usr/libexec/elogind/elogind.wrapper

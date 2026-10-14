@@ -1,7 +1,0 @@
-podman run -d \
-  --name ntp \
-  --rootfs /modules/system/chrony \
-  --network=host \
-  --cap-add=SYS_TIME \
-  --volume /var/lib/mydistro/state/chrony:/var/lib/chrony:rw \
-  ./run

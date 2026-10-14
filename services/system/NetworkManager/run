@@ -1,0 +1,29 @@
+
+#!/bin/sh
+exec 2>&1
+
+mkdir -p /wdm/modules/NetworkManager/upper /wdm/modules/NetworkManager/work /modules/system/NetworkManager
+
+mountpoint -q /modules/system/NetworkManager || \
+    mount -t overlay wideros-NetworkManager \
+    -o lowerdir=/wdm/modules/NetworkManager/lower,upperdir=/wdm/modules/NetworkManager/upper,workdir=/wdm/modules/NetworkManager/work \
+    /modules/system/NetworkManager || exit 1
+
+i=0
+while [ ! -S /run/dbus/system_bus_socket ]; do
+    i=$((i + 1))
+    [ "$i" -lt 60 ] || exit 1
+    sleep 1
+done
+
+exec podman run --rm \
+    --name wideros-networkmanager \
+    --rootfs /modules/system/NetworkManager \
+    --network=host \
+    --cap-add=NET_ADMIN \
+    --cap-add=NET_RAW \
+    --volume /run:/run:rw \
+    --volume /sys:/sys:ro \
+    --volume /dev:/dev:rw \
+    --volume /etc/machine-id:/etc/machine-id:ro \
+    NetworkManager --no-daemon

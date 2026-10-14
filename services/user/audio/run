@@ -1,0 +1,49 @@
+
+#!/bin/sh
+exec 2>&1
+
+mkdir -p /wdm/modules/audio/upper /wdm/modules/audio/work /modules/system/audio
+
+mountpoint -q /modules/system/audio || \
+    mount -t overlay wideros-audio \
+    -o lowerdir=/wdm/modules/audio/lower,upperdir=/wdm/modules/audio/upper,workdir=/wdm/modules/audio/work \
+    /modules/system/audio || exit 1
+
+uid=1000
+gid=1000
+runtime="/run/user/$uid"
+
+[ -d "$runtime" ] || {
+    echo "Missing session runtime directory: $runtime" >&2
+    exit 1
+}
+
+exec podman run --rm \
+    --name wideros-audio \
+    --rootfs /modules/system/audio \
+    --user "$uid:$gid" \
+    --volume "$runtime:$runtime:rw" \
+    --volume /dev/snd:/dev/snd:rw \
+    --env "XDG_RUNTIME_DIR=$runtime" \
+    --cap-drop=ALL \
+    --security-opt=no-new-privileges \
+    /bin/sh -c '
+        pipewire &
+        p1=$!
+        pipewire-pulse &
+        p2=$!
+        wireplumber &
+        p3=$!
+
+        trap "kill $p1 $p2 $p3 2>/dev/null || :" TERM INT HUP
+
+        while kill -0 "$p1" 2>/dev/null &&
+              kill -0 "$p2" 2>/dev/null &&
+              kill -0 "$p3" 2>/dev/null
+        do
+            sleep 1
+        done
+
+        kill "$p1" "$p2" "$p3" 2>/dev/null || :
+        wait 2>/dev/null || :
+    '

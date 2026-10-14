@@ -1,0 +1,18 @@
+
+#!/bin/sh
+exec 2>&1
+
+mkdir -p /wdm/modules/dbus/upper /wdm/modules/dbus/work /modules/system/dbus /run/dbus
+
+mountpoint -q /modules/system/dbus || \
+    mount -t overlay wideros-dbus \
+    -o lowerdir=/wdm/modules/dbus/lower,upperdir=/wdm/modules/dbus/upper,workdir=/wdm/modules/dbus/work \
+    /modules/system/dbus || exit 1
+
+exec podman run --rm \
+    --name wideros-dbus \
+    --rootfs /modules/system/dbus \
+    --network=host \
+    --volume /run:/run:rw \
+    --volume /etc/machine-id:/etc/machine-id:ro \
+    dbus-daemon --system --nofork --nopidfile

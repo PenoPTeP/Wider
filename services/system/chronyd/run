@@ -1,0 +1,18 @@
+
+#!/bin/sh
+exec 2>&1
+
+mkdir -p /wdm/modules/chrony/upper /wdm/modules/chrony/work /modules/system/chrony
+
+mountpoint -q /modules/system/chrony || \
+    mount -t overlay wideros-chrony \
+    -o lowerdir=/wdm/modules/chrony/lower,upperdir=/wdm/modules/chrony/upper,workdir=/wdm/modules/chrony/work \
+    /modules/system/chrony || exit 1
+
+exec podman run --rm \
+    --name wideros-chrony \
+    --rootfs /modules/system/chrony \
+    --network=host \
+    --cap-add=SYS_TIME \
+    --volume /run:/run:rw \
+    chronyd -n -u chrony

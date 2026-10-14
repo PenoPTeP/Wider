@@ -1,0 +1,22 @@
+
+#!/bin/sh
+exec 2>&1
+
+mkdir -p /wdm/modules/udev/upper /wdm/modules/udev/work /modules/system/udev
+
+mountpoint -q /modules/system/udev || \
+    mount -t overlay wideros-udev \
+    -o lowerdir=/wdm/modules/udev/lower,upperdir=/wdm/modules/udev/upper,workdir=/wdm/modules/udev/work \
+    /modules/system/udev || exit 1
+
+exec podman run --rm \
+    --name wideros-udev \
+    --rootfs /modules/system/udev \
+    --privileged \
+    --pid=host \
+    --network=host \
+    --volume /run:/run:rw \
+    --volume /sys:/sys:rw \
+    --volume /dev:/dev:rw \
+    --volume /etc/machine-id:/etc/machine-id:ro \
+    udevd
