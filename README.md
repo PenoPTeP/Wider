@@ -3,16 +3,6 @@
 A GNU/Linux distro experiment with the goal of being user-friendly, easy to hack and customize, immutable, and modular. Usually, you only get one or two.
 The goal is a system that's easy to use day to day but doesn't get in the way when you want to change how it works.
 
-## Stack
-
-- **Linux** — kernel and hardware support
-- **Nix flakes** — building and packaging
-- **OverlayFS** — immutable filesystem layers with writable overlays
-- **Podman** — container runtime for system services
-- **runit** — current service supervisor
-
-The system is designed so that components can be replaced without tying the whole setup to one particular implementation.
-
 ## Init system
 
 runit is the current choice for service supervision, but the service management layer is intended to be independent of the init system.
